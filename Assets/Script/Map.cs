@@ -7,6 +7,7 @@ public class Map : MonoBehaviour
     public int Height;
     public int Width;
     public int CellSize;
+    public int CamHeight;
     public Vector3 TargetPos;
     private Vector3 AimPoint;
     private List<GameObject> ClickMark;
@@ -21,11 +22,14 @@ public class Map : MonoBehaviour
         CreateGrid grid = gameObject.AddComponent<CreateGrid>() as CreateGrid;
         grid.Create(Height, Width, CellSize);
         Transform camtrans = Camera.main.transform;
-        int x = Width>>1;
-        int z = Height>>1;
+        float x = Width/2f;
+        float z = Height/2f;
+        float y = CamHeight + transform.localPosition.y;
         x *= CellSize;
         z *= CellSize;
-        camtrans.localPosition = new Vector3(x, 150, z);
+        x += transform.localPosition.x;
+        z += transform.localPosition.z;
+        camtrans.localPosition = new Vector3(x, y, z);
     }
     void Update()
     {   
@@ -54,7 +58,7 @@ public class Map : MonoBehaviour
 
                     //计算点击的格子左下角的index
                     AimPoint = gameObject.GetComponent<CreateGrid>().WorldToGridIndex(TargetPos);
-                    
+
                     ClickMark.Add(Utils.UtilsTool.CreatePlane(AimPoint, CellSize, transform, SelectBlockColor));
                 }
             }

@@ -16,6 +16,7 @@ class UtilsTool
         MeshFilter Mymeshfilter = ClickMark.AddComponent<MeshFilter>();
         MeshRenderer Mymeshrenderer = ClickMark.AddComponent<MeshRenderer>();
         float x = LeftBottomPosition.x;
+        float y = MyParent.localPosition.y;
         float z = LeftBottomPosition.z;
         x *= length;
         z *= length;
@@ -30,19 +31,16 @@ class UtilsTool
             Mymeshrenderer.material = Mymaterial;
         Mymeshfilter.mesh.vertices = new Vector3 []
         {
-            new Vector3(x, 0, z),
-            new Vector3(x + length, 0, z),
-            new Vector3(x, 0, z + length),
-
-            new Vector3(x, 0, z + length),
-            new Vector3(x + length, 0, z),
-            new Vector3(x + length, 0, z + length)
+            new Vector3(x, y, z),
+            new Vector3(x + length, y, z),
+            new Vector3(x, y, z + length),
+            new Vector3(x + length, y, z + length)
         };
         // foreach(Vector3 c in Mymeshfilter.mesh.vertices)
         // {
         //     Debug.Log(c+"  c");
         // }
-        Mymeshfilter.mesh.triangles = new int[]{5, 4, 3, 2, 1, 0};
+        Mymeshfilter.mesh.triangles = new int[]{3, 1, 2, 2, 1, 0};
         Mymeshfilter.mesh.RecalculateNormals();
         ClickMark.transform.SetParent(MyParent);
         return ClickMark;

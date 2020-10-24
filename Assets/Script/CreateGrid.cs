@@ -17,18 +17,19 @@ public class CreateGrid : MonoBehaviour
     
     void CreateText(Vector3 Mtrans, string Mtext, int Fontsize, Color color)
     {
-        GameObject gameObject = new GameObject("World_Text", typeof(TextMesh));
-        Transform transform = gameObject.transform;
-        transform.SetParent(this.transform);
-        transform.localPosition = Mtrans;
-        transform.Rotate(new Vector3(90, 0, 0));
-        TextMesh textmesh = gameObject.GetComponent<TextMesh>();
+        GameObject MygameObject = new GameObject("World_Text", typeof(TextMesh));
+        Transform Mytransform = MygameObject.transform;
+        Mytransform.localPosition = Mtrans;
+        Mytransform.localPosition += transform.localPosition;
+        Mytransform.Rotate(new Vector3(90, 0, 0));
+        TextMesh textmesh = MygameObject.GetComponent<TextMesh>();
         textmesh.anchor = TextAnchor.MiddleCenter;
         textmesh.alignment = TextAlignment.Left;
         textmesh.text = Mtext;
         textmesh.fontSize = Fontsize;
         textmesh.color = color;
         textmesh.GetComponent<MeshRenderer>().sortingOrder = 1;
+        Mytransform.SetParent(this.transform);
     }
     public void Create(int hig, int wid, int cellsize)
     {
@@ -41,15 +42,15 @@ public class CreateGrid : MonoBehaviour
         int c, r;
         r = gridArry.GetLength(0);
         c = gridArry.GetLength(1);
-        for(int i = 0; i < r; ++i)
-        {
-            for(int j = 0; j < c; ++j)
-            {
-                CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, gridArry[i, j].ToString(), 26, Color.white);
-                Debug.DrawLine(GetPosition(i, j), GetPosition(i, j+1), Color.red, 200f);
-                Debug.DrawLine(GetPosition(i, j), GetPosition(i+1, j), Color.red, 200f);
-            }
-        }
+        // for(int i = 0; i < r; ++i)
+        // {
+        //     for(int j = 0; j < c; ++j)
+        //     {
+                // CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, gridArry[i, j].ToString(), 26, Color.white);
+        //         Debug.DrawLine(GetPosition(i, j), GetPosition(i, j+1), Color.red, 200f);
+        //         Debug.DrawLine(GetPosition(i, j), GetPosition(i+1, j), Color.red, 200f);
+        //     }
+        // }
     }
 
     Vector3 GetPosition(int z, int x)
