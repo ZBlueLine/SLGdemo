@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharaColltroler : MonoBehaviour
+public class CharaController : MonoBehaviour
 {
     Animator  m_Animator;
     int WaitStatus;

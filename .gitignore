@@ -1,9 +1,8 @@
-*.[oa]
-*~
-Temp/
-*.log
-*.cache
 Library/
+Temp/
 Logs/
 obj/
+Packages/
 .vscode/
+*.sln
+*.csproj
