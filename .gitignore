@@ -1,4 +1,9 @@
 *.[oa]
 *~
 Temp/
-
+*.log
+*.cache
+Library/
+Logs/
+obj/
+.vscode/
