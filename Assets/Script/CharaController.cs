@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,8 +22,7 @@ public class CharaController : MonoBehaviour
             AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
             if(WaitStatus == 0)
             {
-                System.Random rd = new System.Random();
-                WaitStatus = rd.Next(1,5);
+                WaitStatus = Random.Range(1, 4);
                 LastActTime = NowTime;
                 Debug.Log(WaitStatus);
                 m_Animator.SetInteger("WaitStatus", WaitStatus);

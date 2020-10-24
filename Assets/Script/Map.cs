@@ -4,8 +4,8 @@ using UnityEngine;
 using Utils;
 public class Map : MonoBehaviour
 {
-    public int Height;
     public int Width;
+    public int Height;
     public int CellSize;
     public int CamHeight;
     public Vector3 TargetPos;
@@ -13,14 +13,15 @@ public class Map : MonoBehaviour
     private List<GameObject> ClickMark;
     public Material SelectBlockColor;
 
+
     void Awake()
     {
         ClickMark = new List<GameObject>();
+        CreateGrid grid = gameObject.AddComponent<CreateGrid>() as CreateGrid;
+        grid.Create(Width, Height, CellSize);
     }
     void Start()
     {
-        CreateGrid grid = gameObject.AddComponent<CreateGrid>() as CreateGrid;
-        grid.Create(Height, Width, CellSize);
         Transform camtrans = Camera.main.transform;
         float x = Width/2f;
         float z = Height/2f;
@@ -59,7 +60,7 @@ public class Map : MonoBehaviour
                     //计算点击的格子左下角的index
                     AimPoint = gameObject.GetComponent<CreateGrid>().WorldToGridIndex(TargetPos);
 
-                    ClickMark.Add(Utils.UtilsTool.CreatePlane(AimPoint, CellSize, transform, SelectBlockColor));
+                    ClickMark.Add(UtilsTool.CreatePlane(AimPoint, CellSize, transform, SelectBlockColor));
                 }
             }
         }
