@@ -1,28 +1,40 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Global;
 
 public class CharaManager : MonoBehaviour
 {
-    private List<GameObject> Ally;
     public List<Vector3Int> AllyGridIndex;
+    public List<Object> Prefab;
+    public GameObject MyCanvas;
+    GameObject HPui;
+
+    public GameObject HPUI { get => HPui; set => HPui = value; }
+
     void Awake()
     {
-        Ally = new List<GameObject>();
+        MyCanvas = GameObject.Find("Canvas");
     }
     void Start()
     {
         //创建角色
-        Object Prefab = Resources.Load("unitychan");
-        CreateGrid UseFunction = transform.parent.gameObject.GetComponent<CreateGrid>();
-        foreach(Vector3Int c in AllyGridIndex)
+        // Prefab.Add(Resources.Load("unitychan"));
+        Map UseFunction = transform.parent.gameObject.GetComponent<Map>();
+        for(int i = 0, j = 0; i < AllyGridIndex.Count&&j < Prefab.Count; ++i,++j)
         {
-            UseFunction.SetGridValue(new Vector2Int(c.x, c.z), 1);
+            UseFunction.SetGridValue(new Vector2Int(AllyGridIndex[i].x, AllyGridIndex[i].z), GlobalVar.IsChara);
             Vector3 TmpPosition = new Vector3();
-            TmpPosition = UseFunction.GridIndexToWorld(c);
+            TmpPosition = UseFunction.GridIndexToWorld(AllyGridIndex[i]);
             TmpPosition.y -= 0.05f;
-            GameObject NewAlly = Instantiate(Prefab, TmpPosition,  Quaternion.identity) as GameObject;
-            Ally.Add(NewAlly);
+            //create new chara
+            GameObject NewAlly = Instantiate(Prefab[j], TmpPosition,  Quaternion.identity) as GameObject;
+            CharaController m_Controller = NewAlly.gameObject.GetComponent<CharaController>();
+            m_Controller.InMap1 = transform.parent.gameObject;
+            transform.forward = new Vector3(1, 0, -1);
+            m_Controller.SetIndex(AllyGridIndex[i].x, AllyGridIndex[i].z);
+            m_Controller.MyCanvas1 = MyCanvas;
+            UseFunction.AddObject(new Vector2Int(AllyGridIndex[i].x, AllyGridIndex[i].z), NewAlly);
         }
         UseFunction.ShowValue();
     }

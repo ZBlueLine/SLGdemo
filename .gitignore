@@ -6,3 +6,5 @@ Packages/
 .vscode/
 *.sln
 *.csproj
+Release/
+
