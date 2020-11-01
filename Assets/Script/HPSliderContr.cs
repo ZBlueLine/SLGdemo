@@ -24,10 +24,11 @@ public class HPSliderContr : MonoBehaviour
         MaxHPtext.text = chara.MaxHp.ToString();
         CurrentHPtext.text = chara.CurrentHp.ToString();
     }
-    void Update()
-    {
-        MySlider.value = (float)chara.CurrentHp/chara.MaxHp;
-        MaxHPtext.text = chara.MaxHp.ToString();
-        CurrentHPtext.text = chara.CurrentHp.ToString();
-    }
+    // void Update()
+    // {
+    //     MySlider.value = (float)chara.CurrentHp/chara.MaxHp;
+    //     MaxHPtext.text = chara.MaxHp.ToString();
+    //     CurrentHPtext.text = chara.CurrentHp.ToString();
+    // }
+    
 }

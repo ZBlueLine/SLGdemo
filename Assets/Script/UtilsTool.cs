@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-
+using Global;
 
 namespace Utils
 {
@@ -34,10 +34,10 @@ class UtilsTool
         Mymeshrenderer.shadowCastingMode = ShadowCastingMode.Off;
         Mymeshfilter.mesh.vertices = new Vector3 []
         {
-            new Vector3(0, y, 0),
-            new Vector3(length, y, 0),
-            new Vector3(0, y, length),
-            new Vector3(length, y, length)
+            new Vector3(0, 0, 0),
+            new Vector3(length, 0, 0),
+            new Vector3(0, 0, length),
+            new Vector3(length, 0, length)
         };
         // foreach(Vector3 c in Mymeshfilter.mesh.vertices)
         // {
@@ -45,59 +45,94 @@ class UtilsTool
         // }
         Mymeshfilter.mesh.triangles = new int[]{3, 1, 2, 2, 1, 0};
         Mymeshfilter.mesh.RecalculateNormals();
-        ClickMark.transform.SetParent(MyParent);
+        // ClickMark.transform.SetParent(MyParent, false);
         return ClickMark;
     }
 
-    class Node
+    public class Node
     {
-        Vector2Int Pos;
+        public Node(Vector2Int p, int len)
+        {
+            Pos = p;
+            StepLen = len;
+        }
+        Vector2Int pos;
+        int stepLen;
 
+        public Vector2Int Pos { get => pos; set => pos = value; }
+        public int StepLen { get => stepLen; set => stepLen = value; }
     }
-    public static Queue<Vector2Int> BFS(int r, int c, ref int[,] map, Vector2Int StartP, Vector2Int EndP)
+
+    static int [] vis;
+    public static int GetVis(int x, int z, int Width)
+    {
+        return vis[z*Width + x];
+    }
+    public static Queue<Vector2Int> BFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Range = 0x3f3f3f)
     {
         Vector2Int [] Parent = Enumerable.Repeat(new Vector2Int(-1, -1), r*c+10).ToArray();
-        bool [] vis = Enumerable.Repeat(false, r*c+10).ToArray();
+        vis = Enumerable.Repeat(0, r*c+10).ToArray();
         int x = StartP.x;
         int y = StartP.y;
-        Queue<Vector2Int> q = new Queue<Vector2Int>();
+        Queue<Node> q = new Queue<Node>();
         Queue<Vector2Int> res = new Queue<Vector2Int>();
         if(x < 0|| x >= c||y < 0||y >= r)
-            return q;
+            return res;
         int [,] dir = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
-        vis[y*c + x] = true;
-        q.Enqueue(StartP);
+        bool hasPath = false;
+        q.Enqueue(new Node(StartP, 0));
         Vector2Int Ans = new Vector2Int();
         while(q.Count != 0)
         {
-            Vector2Int NowPos = q.Dequeue();
+            Node NowPos = q.Dequeue();
             int nx, ny;
-            nx = NowPos.x;
-            ny = NowPos.y;
-            if(NowPos == EndP)
+            nx = NowPos.Pos.x;
+            ny = NowPos.Pos.y;
+            vis[ny*c + nx] = 1;
+            if(hasPath)break;
+            if((NowPos.StepLen + 1) > Range)
             {
-                Ans = NowPos;
-                break;
+                vis[ny*c + nx] = 2;
+                continue;
             }
             for(int i = 0; i < 4; ++i)
             {
                 int tnx = nx + dir[i, 0];
                 int tny =ny + dir[i, 1];
                 if(tnx < 0||tnx>=c||tny < 0|| tny >= r)continue;
-                if(vis[tny*c + tnx] == true)continue;
-                q.Enqueue(new Vector2Int(tnx, tny));
-                vis[tny*c + tnx] = true;
-                Parent[tny*c + tnx] = NowPos;
+                if(vis[tny*c + tnx] != 0)continue;
+                if(new Vector2Int(tnx, tny) == EndP)
+                {
+                    hasPath = true;
+                    Ans = NowPos.Pos;
+                    if(map[tnx, tny].statucode > GlobalVar.CannotMove)  
+                    {
+                        Parent[tny*c + tnx] = NowPos.Pos;                 
+                        Ans = new Vector2Int(tnx, tny);
+                    }
+                    break;
+                }
+                if(map[tnx, tny].statucode <= GlobalVar.CannotMove)
+                {
+                    if(map[tnx, tny].statucode == GlobalVar.IsEnemy||map[tnx, tny].statucode == GlobalVar.IsChara)
+                            vis[tny*c + tnx] = 2;
+                    continue;
+                }
+                q.Enqueue(new Node(new Vector2Int(tnx, tny), NowPos.StepLen+1));
+                Parent[tny*c + tnx] = NowPos.Pos;
             }
         }
         Vector2Int Tmp = new Vector2Int(-1, -1);
-        while(Parent[Ans.y*c + Ans.x] != Tmp)
+        while(hasPath&&Parent[Ans.y*c + Ans.x] != Tmp)
         {
             res.Enqueue(Ans);
             Ans = Parent[Ans.y*c + Ans.x];
         }
+        Debug.Log(res);
         return res;
     }
+
+    // public 
 }
 
 

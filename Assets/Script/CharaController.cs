@@ -9,10 +9,16 @@ public class CharaController : MonoBehaviour
     int WaitStatus;
     float LastActTime;
     public int MoveRange;
+    public int AttackRange;
     public float speed;
     public float turnSpeed;
     public int MaxHp;
     public int CurrentHp;
+    public int TeamTag;
+
+    //记录本回合是否已经完成了动作
+    int status;
+    public int Status{get => status; set => status = value;}
 
     //Mapinfo
     GameObject InMap;
@@ -21,18 +27,22 @@ public class CharaController : MonoBehaviour
 
     Animator  m_Animator;
     public Material RangeMaterial;
+    public Material AttackMaterial;
     Vector2Int Index;
     
-    //Move
+    //Action
     Vector3 NextPosition;
-    bool isWalking;
+    bool IsWalking;
+    bool BeDamaged;
+    public int ATK;
     Rigidbody m_Rigidbody;
     Vector3 m_Movement;
     Quaternion m_Rotation = Quaternion.identity;
-    
+
     //UI
     public Object PropertyUI;
     GameObject MyCanvas;
+    GameObject UI1;
     
 
 
@@ -81,21 +91,27 @@ public class CharaController : MonoBehaviour
     void FixedUpdate ()
     {
         float NowTime = Time.time;
-        m_Animator.SetBool ("IsWalking", isWalking);
-        if(isWalking)
+        m_Animator.SetInteger("WaitStatus", WaitStatus);
+        m_Animator.SetBool ("IsWalking", IsWalking);
+        m_Animator.SetBool("BeDamaged", BeDamaged);
+        if(IsWalking)
         {
             WaitStatus = 0;
             float step = speed * Time.deltaTime;  
-             
             m_Movement.Normalize();
-            Debug.Log(transform.forward+"transform.forward");
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, m_Movement, turnSpeed * Time.deltaTime, 0f);
-            Debug.Log(desiredForward);
             m_Rotation = Quaternion.LookRotation(desiredForward);
             gameObject.transform.position = Vector3.MoveTowards(gameObject.transform.position, NextPosition, step);
             if(gameObject.transform.position.Equals(NextPosition))
-            {
                 Move();
+        }
+        else if(BeDamaged)
+        {
+            AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
+            if(m_Animainfo.normalizedTime >= 1f)
+            {
+                BeDamaged = false;
+                WaitStatus = 0;
             }
         }
         else if(NowTime - LastActTime > (Random.Range(4, 7)))
@@ -105,15 +121,19 @@ public class CharaController : MonoBehaviour
             {
                 WaitStatus = Random.Range(1, 4);
                 LastActTime = NowTime;
-                m_Animator.SetInteger("WaitStatus", WaitStatus);
             }
             else if(m_Animainfo.normalizedTime >= 1f)
             {
                 LastActTime = NowTime;
                 WaitStatus = 0;
-                m_Animator.SetInteger("WaitStatus", WaitStatus);
             }
         }
+    }
+
+    public void Damaged(int Value)
+    {
+        BeDamaged = true;
+        CurrentHp -= Value;
     }
 
     public void AddMoveAction(Vector2Int Position)
@@ -122,7 +142,7 @@ public class CharaController : MonoBehaviour
     }
     public void Move()
     {
-        isWalking = true;
+        IsWalking = true;
         if(DirList.Count!=0)
         {
             Vector2Int NextPos = DirList.Peek();
@@ -130,58 +150,98 @@ public class CharaController : MonoBehaviour
             NextPosition = MyMap.GridIndexToWorld(new Vector3(NextPos.x, 0, NextPos.y));
             m_Movement = (NextPosition - transform.position);
             m_Movement.y = 0;
-            Debug.Log(m_Movement+"m_Movement");
         }
         else 
         {
+            MyMap.Moveing = false;
             Vector3 tmp = MyMap.WorldToGridIndex(gameObject.transform.position);
             SetIndex((int)tmp.x, (int)tmp.z);
-            isWalking = false;
-            MyMap.SetGridValue(new Vector2Int((int)tmp.x, (int)tmp.z), GlobalVar.IsChara);
+            IsWalking = false;
+            if(TeamTag == GlobalVar.IsChara)
+                MyMap.SetGridValue(new Vector2Int((int)tmp.x, (int)tmp.z), IsCharaStatus.getInstance());
+            else 
+                MyMap.SetGridValue(new Vector2Int((int)tmp.x, (int)tmp.z), IsEnemyStatus.getInstance());
         }
     }
 
-    private bool InRange(Vector3 s, Vector2Int e, int Hei, int Wid)
+    private bool InRange(Vector3 s, Vector2Int e, int Hei, int Wid, int MinRange, int MaxRange)
     {
         if(s.x < 0||s.z < 0||s.x >= Wid||s.z >= Hei)return false;
-        int len = Mathf.Abs((int)s.x-e.x);
+        int len = Mathf.Abs((int)s.x - e.x);
         len += Mathf.Abs((int)s.z - e.y);
-        if(len < MoveRange)
+        if(len <= MaxRange&&len > MinRange)
             return true;
         return false;
     }
 
-    public void ShowMoveRange()
+    private void ShowRange(int MinRange, int MaxRange, GridStatus Mark, bool SetValue)
     {
         int Height = MyMap.Height;
         int Width = MyMap.Width;
         int CellSize = MyMap.CellSize;
-        Vector3 StartIndex = new Vector3(Index.x - MoveRange + 1, 0, Index.y - MoveRange + 1);
+        Vector3 StartIndex = new Vector3(Index.x - MaxRange, 0, Index.y - MaxRange);
         Vector3 NowIndex = new Vector3();
-        for(int i = 0; i < MoveRange*2; ++i)
+        for(int i = 0; i < MaxRange*2 + 1; ++i)
         {
-            for(int j = 0; j < MoveRange*2; ++j)
+            for(int j = 0; j < MaxRange*2 + 1; ++j)
             {
                 NowIndex.x = StartIndex.x + i;
                 NowIndex.z = StartIndex.z + j;
-                if(!InRange(NowIndex, Index, Height, Width))continue;
-                MyMap.AddClickMark(UtilsTool.CreatePlane(NowIndex, CellSize, InMap1.transform, RangeMaterial));
-                if(NowIndex.x == Index.x&&NowIndex.z == Index.y)continue;
-                if(MyMap.GetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z)) == GlobalVar.IsChara)continue;
-                MyMap.SetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), GlobalVar.PrepareMove);
+                if(!InRange(NowIndex, Index, Height, Width, MinRange, MaxRange))continue;
+                GridStatus StatusofChose = MyMap.GetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z));
+                int Statuscode = StatusofChose.statucode;
+                
+                int visValue = UtilsTool.GetVis((int)NowIndex.x, (int)NowIndex.z, MyMap.Width);
+                // 只有显示移动范围才需要判是否可达
+                if(Mark.statucode != GlobalVar.Attack)
+                {
+                    if(visValue == 0)continue;
+                    if(visValue == 2)
+                        MyMap.AddClickMark(UtilsTool.CreatePlane(NowIndex, CellSize, InMap1.transform, AttackMaterial));
+                    else
+                        MyMap.AddClickMark(UtilsTool.CreatePlane(NowIndex, CellSize, InMap1.transform, RangeMaterial));
+
+                }
+                else
+                    MyMap.AddClickMark(UtilsTool.CreatePlane(NowIndex, CellSize, InMap1.transform, AttackMaterial));
+                
+                //敌人角色在这里直接下一轮循环
+                if(!SetValue)continue;
+
+                if(Mark.statucode == GlobalVar.Attack)
+                    if(TeamTag == GlobalVar.IsChara&&Statuscode == GlobalVar.IsEnemy)
+                        MyMap.SetAttackValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), Mark);
+                    else
+                        MyMap.SetAttackValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), StatusofChose);
+                // if(NowIndex.x == Index.x&&NowIndex.z == Index.y)continue;
+                else if(StatusofChose.statucode > GlobalVar.CannotMove)
+                    MyMap.SetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), Mark);
             }
         }
         MyMap.ShowValue();
     }
 
+    public void ShowMoveRange(bool SetValue = true)
+    {
+        UtilsTool.BFS(MyMap.Height,MyMap.Width,  MyMap.gridArry, Index, new Vector2Int(-1, -1), MoveRange+AttackRange);
+        ShowRange(0, MoveRange+AttackRange, PrepareMoveStatus.getInstance(), SetValue);
+    }
+    public void ShowAttackRange()
+    {
+        ShowRange(0, AttackRange, Attackststus.getInstance(), true);
+        MyMap.SetAttackValue(new Vector2Int((int)Index.x, (int)Index.y), IsCharaStatus.getInstance());
+    }
     public void Showproperties()
     {
-        CharaManager UIMan =  MyMap.GetComponentInChildren<CharaManager>();
-        GameObject UI1 =  MyMap.GetComponentInChildren<CharaManager>().HPUI;
-        if(UIMan.HPUI)
-            GameObject.Destroy(UIMan.HPUI);
-        UIMan.HPUI = Instantiate(PropertyUI, new Vector3(100, 30, 0),  Quaternion.identity) as GameObject;
-        UIMan.HPUI.GetComponent<HPSliderContr>().Chara = this;
-        UIMan.HPUI.transform.SetParent(MyCanvas.transform);
+        if(UI1)
+            GameObject.Destroy(UI1);
+        UI1 = Instantiate(PropertyUI, new Vector3(100, 90, 0),  Quaternion.identity) as GameObject;
+        UI1.GetComponent<HPSliderContr>().Chara = this;
+        UI1.transform.SetParent(MyCanvas.transform);
+    }
+    public void Closeproperties()
+    {
+        if(UI1)
+            GameObject.Destroy(UI1);
     }
 }

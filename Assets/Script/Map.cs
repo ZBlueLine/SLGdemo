@@ -4,27 +4,64 @@ using System;
 using Global;
 using UnityEngine;
 using Utils;
+using UnityEngine.EventSystems;
 public class Map : MonoBehaviour
 {
+    //Property
     public int Width;
     public int Height;
+
     public int CellSize;
-    public int CamHeight;
+    int charanumber;
+    public int CharaNumber{get => charanumber; set => charanumber = value;}
+
     public Vector3 TargetPos;
-    Vector3Int AimPoint;
+    Vector3Int aimpoint;
     List<GameObject> ClickMark;
     public Material SelectBlockColor;
-    int [,] gridArry;
-    List<List<GameObject>> ObjectArry;
+    
+    GridStatus [,] GridArry;
+    public GridStatus[,] gridArry { get => GridArry; set => GridArry = value; }
+    GridStatus [,] attackArry;
+    public GridStatus[,] AttackArry { get => attackArry; set => attackArry = value; }
+    List<List<GameObject>> objectarry;
+    public List<List<GameObject>> ObjectArry { get => objectarry; set => objectarry = value; }
+    public Vector3Int AimPoint { get => aimpoint; set => aimpoint = value; }
+
     List<GameObject> Texts;
-    bool Press;
+
+    //Status
+    bool preacttk;
+    public bool PrepareAttack { get => preacttk; set => preacttk = value; }
+    bool moveing;
+    bool enemyTurn;
+    bool playerTurn;
+    public bool EnemyTurn { get => enemyTurn; set => enemyTurn = value; }
+    public bool PlayerTurn { get => playerTurn; set => playerTurn = value; }
+
+    //已结束行动的单位个数
+    int actionend;
+    public int ActionEnd{get => actionend; set => actionend = value;}
+    public bool Moveing { get => moveing; set => moveing = value; }
+    CharaManager charaManget;
+
     Vector3 LastPressLocation;
-    GameObject SelectedChara;
 
     void Awake()
     {
+        EnemyTurn = false;
+        PlayerTurn = false;
+        Moveing = false;
+        GridStatus.MyMap = this;
         ClickMark = new List<GameObject>();
-        gridArry = new int [Width, Height];
+        gridArry = new GridStatus [Width, Height];
+        AttackArry = new GridStatus [Width, Height];
+        for(int i = 0; i < Width; ++i)
+            for(int j = 0; j < Height; ++j)
+            {
+                gridArry[i, j] = EmptyLcationstatus.getInstance();
+                AttackArry[i, j] = EmptyLcationstatus.getInstance();
+            }
         Texts = new List<GameObject>();
         LastPressLocation = new Vector3();
         ObjectArry = new List<List<GameObject>>();
@@ -37,83 +74,83 @@ public class Map : MonoBehaviour
             }
         }
     }
-    void Start()
-    {
-        
-        Press = false;
-        // float x = Width/2f;
-        // float z = Height/2f;
-        // float y = CamHeight + transform.localPosition.y;
-        // x *= CellSize;
-        // z *= CellSize;
-        // x += transform.localPosition.x;
-        // z += transform.localPosition.z;
-        //camtrans.localPosition = new Vector3(x, y, z);
-    }
+
+    private void Start() => charaManget = transform.Find("CharaManager").gameObject.GetComponent<CharaManager>();
+
     void Update()
     {   
-        if(Input.GetMouseButtonUp(0))
+        if(Moveing)return;
+        if(!PlayerTurn&&EnemyTurn)
+        {
+            GameObject ChosedEnemy = charaManget.GetAEnemy();
+            Debug.Log(ChosedEnemy);
+            if(!ChosedEnemy)
+            {
+                PlayerTurn = true;
+                EnemyTurn = false;
+            }
+            else
+            {
+                CharaController EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
+                GameObject ChoseChara = charaManget.GetNearestChara(EnemyCon.GetIndex());
+
+                CharaController CharaCon = ChoseChara.GetComponent<CharaController>();
+
+                Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  gridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
+                //抛弃最后一个位置，最后一个位置是有角色的
+                while(Path.Count != 0)
+                {
+                    Debug.Log(Path.Peek());
+                    EnemyCon.AddMoveAction(Path.Dequeue());
+                }
+                Moveing = true;
+                EnemyCon.Move();
+            }
+        }
+        else if(Input.GetMouseButtonUp(0))
         {
             Vector3 mousePosition = Input.mousePosition;
-            Ray Mray = Camera.main.ScreenPointToRay(mousePosition);
-            Debug.DrawRay(Mray.origin, Mray.direction * 1000, Color.white, 100, true);
-            RaycastHit Mhit;
-            if(Physics.Raycast(Mray, out Mhit))
+            //判断有没有点到ui
+            if(!EventSystem.current.IsPointerOverGameObject())
             {
-                if(Mhit.collider.gameObject.tag == "Map")
+                Ray Mray = Camera.main.ScreenPointToRay(mousePosition);
+                Debug.DrawRay(Mray.origin, Mray.direction * 1000, Color.white, 100, true);
+                RaycastHit Mhit;
+                if(Physics.Raycast(Mray, out Mhit))
                 {
-                    //清空文字显示
-                    TargetPos = Mhit.point;
+                    if(Mhit.collider.gameObject.tag == "Map")
+                    {
+                        //清空文字显示
+                        TargetPos = Mhit.point;
 
-                    //计算点击的格子左下角的index
-                    AimPoint = WorldToGridIndex(TargetPos);
-                    int x , y;
-                    x = AimPoint.x;
-                    y = AimPoint.z;
-                    int value = GetGridValue(new Vector2Int(x, y));
-                    ClearText();
-                    ReSetGridValue();
-                    if(value == GlobalVar.IsChara)
-                    {
-                        Debug.Log("have Chara");
-                        SelectedChara = GetObject(new Vector2Int(x, y));
-                        CharaController selectchara = SelectedChara.gameObject.GetComponent<CharaController>();
-                        selectchara.ShowMoveRange();
-                        selectchara.Showproperties();
-                    }
-                    else if(value == GlobalVar.PrepareMove)
-                    {
-                        Debug.Log("PrepareMove");
-                        CharaController m_Controller = SelectedChara.GetComponent<CharaController>();
-                        Vector2Int StartPos = m_Controller.GetIndex();
-                        Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width, ref gridArry, StartPos, new Vector2Int(x, y));
-                        while(Path.Count != 0)
-                        {
-                            m_Controller.AddMoveAction(Path.Dequeue());
-                        }
-                        Debug.Log("Move");
-                        m_Controller.Move();
-                        SetGridValue(new Vector2Int(StartPos.x, StartPos.y), GlobalVar.EmptyLcation);
-                        GameObject Tmp = ObjectArry[StartPos.x][StartPos.y];
-                        ObjectArry[StartPos.x][StartPos.y] =  ObjectArry[x][y];
-                        ObjectArry[x][y] = Tmp;
-                        ShowValue();
-                    }
-                    else if(value == -1)
-                    {
-                        Debug.Log("error Click range!!!");
-                    }
-                    else 
-                    {
-                        AddClickMark(UtilsTool.CreatePlane(AimPoint, CellSize, transform, SelectBlockColor));
-                        ShowValue();
+                        //计算点击的格子左下角的index
+                        AimPoint = WorldToGridIndex(TargetPos);
+                        int x , y;
+                        x = AimPoint.x;
+                        y = AimPoint.z;
+
+                        //状态模式
+                        GridStatus Nowstatus = GetGridValue(new Vector2Int(x, y), PrepareAttack);
+                        ClearText();
+                        ReSetGridValue();
+                        if(Nowstatus.statucode!=GlobalVar.FailLcation)
+                            Nowstatus.Operation(x, y);
                     }
                 }
             }
         }
     }
 
-    void ReSetGridValue()
+    public void CheckTurn()
+    {
+        if(ActionEnd == CharaNumber)
+        {
+            PlayerTurn = false;
+            EnemyTurn = true;
+        }
+    }
+
+    public void ReSetGridValue()
     {
         if(ClickMark.Count != 0)
         {
@@ -123,9 +160,10 @@ public class Map : MonoBehaviour
                 Position = WorldToGridIndex(Position);
                 Vector2Int CLocaiton =  new Vector2Int((int)Position.x, (int)Position.z);
                 //重置格子的值
-                if(GetGridValue(CLocaiton)== GlobalVar.PrepareMove)
+                SetAttackValue(CLocaiton, EmptyLcationstatus.getInstance());
+                if(GetGridValue(CLocaiton).statucode > GlobalVar.CannotMove)
                 {
-                    SetGridValue(CLocaiton, GlobalVar.EmptyLcation);
+                    SetGridValue(CLocaiton, EmptyLcationstatus.getInstance());
                 }
                 UnityEngine.Object.Destroy(c);
             }
@@ -155,7 +193,7 @@ public class Map : MonoBehaviour
         return ObjectArry[Index.x][Index.y];
     }
 
-    public bool SetGridValue(Vector2Int Index, int value)
+    public bool SetGridValue(Vector2Int Index, GridStatus status)
     {
         int x, y;
         x = Index.x;
@@ -165,11 +203,25 @@ public class Map : MonoBehaviour
             Debug.Log("error Index in SetGridValue!!!!!!!");
             return false;
         }
-        gridArry[x, y] = value;
+        gridArry[x, y] = status;
         return true;
     }
 
-    public int GetGridValue(Vector2Int Index)
+    public bool SetAttackValue(Vector2Int Index, GridStatus status)
+    {
+        int x, y;
+        x = Index.x;
+        y = Index.y;
+        if(x < 0||x >= Width||y < 0||y >= Height)
+        {
+            Debug.Log("error Index in SetAttackValue!!!!!!!");
+            return false;
+        }
+        AttackArry[x, y] = status;
+        return true;
+    }
+
+    public GridStatus GetGridValue(Vector2Int Index, bool Attack = false)
     {
         int x, y;
         x = Index.x;
@@ -177,8 +229,10 @@ public class Map : MonoBehaviour
         if(x < 0||x >= Width||y < 0||y >= Height)
         {
             Debug.Log("error Index in GetGridValue!!!!!!!");
-            return -1;
+            return ErrorStatus.getInstance();
         }
+        if(Attack)
+            return AttackArry[x, y];
         return gridArry[x, y];
     }
     Vector3 GetPosition(int x, int z)
@@ -194,7 +248,7 @@ public class Map : MonoBehaviour
         {
             for(int j = 0; j < y; ++j)
             {
-                CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, GetGridValue(new Vector2Int(i, j)).ToString(), 5, Color.white);
+                CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, GetGridValue(new Vector2Int(i, j)).statucode.ToString(), 5, Color.white);
                 Debug.DrawLine(GetPosition(i, j), GetPosition(i, j+1), Color.red, 200f);
                 Debug.DrawLine(GetPosition(i, j), GetPosition(i+1, j), Color.red, 200f);
             }
