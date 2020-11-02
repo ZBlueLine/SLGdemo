@@ -71,6 +71,12 @@ public class IsEnemyStatus : GridStatus
         {
             selectchara = SelectedChara.gameObject.GetComponent<CharaController>();
             selectchara.Closeproperties();
+            if(new Vector2Int(x, y).Equals(selectchara.GetIndex()))
+            {
+                selectchara.ShowAttackRange(false);
+                selectchara.Showproperties();
+                return;
+            }
         }
         SelectedChara = MyMap.GetObject(new Vector2Int(x, y));
         selectchara = SelectedChara.gameObject.GetComponent<CharaController>();

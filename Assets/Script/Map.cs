@@ -46,8 +46,12 @@ public class Map : MonoBehaviour
 
     //已结束行动的单位个数
     int actionend;
+    int enemyactionend;
     public int ActionEnd{get => actionend; set => actionend = value;}
+    public int Enemyactionend { get => enemyactionend; set => enemyactionend = value; }
+    
     public bool Moveing { get => moveing; set => moveing = value; }
+    bool canattack;
 
     CharaManager charaMange;
 
@@ -94,7 +98,8 @@ public class Map : MonoBehaviour
 
     CharaController CharaCon;
     //记录上一次的ai移动以后是否可以攻击
-    bool CanAttack;
+
+    public bool CanAttack { get => canattack; set => canattack = value; }
 
     void Update()
     {   
@@ -120,13 +125,14 @@ public class Map : MonoBehaviour
             ChosedEnemy = charaMange.GetAEnemy();
             if(!ChosedEnemy)
             {
-                PlayerTurn = true;
-                EnemyTurn = false;
+                CheckTurn();
                 charaMange.NewRound();
                 ActionEnd = 0;
+                Enemyactionend = 0;
             }
             else
             {
+                ++Enemyactionend;
                 EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
                 ChoseChara = charaMange.GetNearestChara(EnemyCon.GetIndex());
                 if(ChoseChara)
@@ -134,20 +140,24 @@ public class Map : MonoBehaviour
                 else 
                     return;
 
-                Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  gridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
+                Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  GridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
 
-                int cnt = EnemyCon.MoveRange;
-                if(Path.Count <= cnt)
+                int cnt = EnemyCon.MoveRange + EnemyCon.AttackRange;
+                if(Path.Count < cnt)
                     CanAttack = true;
+                if(Path.Count < EnemyCon.MinAttackRange)
+                {
+                    CanAttack = false;
+                    Path = UtilsTool.UBFS(Height, Width, GridArry, EnemyCon.GetIndex(), CharaCon.GetIndex(), EnemyCon.MinAttackRange);
+                }
                 while(Path.Count > 0)
                 {
-                    if(Path.Count > cnt)
+                    if(Path.Count > EnemyCon.MoveRange)
                         Path.Dequeue();
                     else
-                    {
                         EnemyCon.AddMoveAction(Path.Dequeue());
-                    }
                 }
+                EnemyCon.AimPos = CharaCon.GetIndex();
                 Moveing = true;
                 EnemyCon.Move();
             }
@@ -176,7 +186,7 @@ public class Map : MonoBehaviour
 
                         //状态模式
                         GridStatus Nowstatus = GetGridValue(new Vector2Int(x, y), PrepareAttack);
-                        ClearText();
+                        // ClearText();
                         ReSetGridValue();
                         if(Nowstatus.statucode!=GlobalVar.FailLcation)
                             Nowstatus.Operation(x, y);
@@ -193,8 +203,13 @@ public class Map : MonoBehaviour
             CanAttack = false;
             PlayerTurn = false;
             EnemyTurn = true;
-            charaMange.ChoseMark = 0;
         }
+        if(Enemyactionend == EnemyNumber)
+        {
+            PlayerTurn = true;
+            EnemyTurn = false;
+        }
+        charaMange.ChoseMark = 0;
     }
 
     public void ReSetGridValue()
@@ -296,7 +311,7 @@ public class Map : MonoBehaviour
         {
             for(int j = 0; j < y; ++j)
             {
-                CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, GetGridValue(new Vector2Int(i, j)).statucode.ToString(), 5, Color.white);
+                // CreateText(GetPosition(i, j) + new Vector3(CellSize, 0, CellSize)*0.5f, GetGridValue(new Vector2Int(i, j)).statucode.ToString(), 5, Color.white);
                 Debug.DrawLine(GetPosition(i, j), GetPosition(i, j+1), Color.red, 200f);
                 Debug.DrawLine(GetPosition(i, j), GetPosition(i+1, j), Color.red, 200f);
             }

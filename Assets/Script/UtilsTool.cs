@@ -68,7 +68,7 @@ class UtilsTool
     {
         return vis[z*Width + x];
     }
-    public static Queue<Vector2Int> BFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Range = 0x3f3f3f, int AttackRange = 1)
+    public static Queue<Vector2Int> BFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Range = 0x3f3f3f, int MinAttackRange = 0, int AttackRange = 1)
     {
         Vector2Int [] Parent = Enumerable.Repeat(new Vector2Int(-1, -1), r*c+10).ToArray();
         vis = Enumerable.Repeat(0, r*c+10).ToArray();
@@ -90,8 +90,13 @@ class UtilsTool
             ny = NowPos.Pos.y;
             vis[ny*c + nx] = 1;
             if(hasPath)break;
-            if((NowPos.StepLen + AttackRange) > Range)
-                vis[ny*c + nx] = 2;
+            if(NowPos.StepLen + AttackRange > Range)
+            {
+                if(NowPos.StepLen + AttackRange - MinAttackRange > Range)
+                    vis[ny*c + nx] = 2;
+                else
+                    vis[ny*c + nx] = 3;
+            }
             if((NowPos.StepLen + 1) > Range)
             {
                 vis[ny*c + nx] = 2;
@@ -132,48 +137,48 @@ class UtilsTool
         }
         return res;
     }
-
-    // public 
+    public static Queue<Vector2Int> UBFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Dis)
+    {
+        Vector2Int [] Parent = Enumerable.Repeat(new Vector2Int(-1, -1), r*c+10).ToArray();
+        Queue<Vector2Int> res = new Queue<Vector2Int>();
+        Queue<Vector2Int> q = new Queue<Vector2Int>();
+        Vector2Int Ans = new Vector2Int(-1, -1);
+        bool hasPath = false;
+        q.Enqueue(StartP);
+        int [,] dir = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
+        bool [,] vis = new bool [r + 5, c + 5];
+        vis[StartP.x, StartP.y] = true;
+        while(q.Count > 0)
+        {
+            Vector2Int NowPos = q.Dequeue();
+            int len = Mathf.Abs(NowPos.x - EndP.x) + Mathf.Abs(NowPos.y - EndP.y);
+            if(len > Dis)
+            {
+                hasPath = true;
+                Ans = NowPos;
+                break;
+            }
+            for(int i = 0; i < 4; ++i)
+            {
+                Vector2Int Tmp = NowPos;
+                Tmp.x += dir[i, 0];
+                Tmp.y += dir[i, 1];
+                if(Tmp.x < 0||Tmp.x>=c||Tmp.y < 0|| Tmp.y >= r)continue;
+                if(vis[Tmp.y , Tmp.x])continue;
+                if(map[Tmp.x, Tmp.y].statucode <= GlobalVar.CannotMove)continue;
+                q.Enqueue(Tmp);
+                Parent[Tmp.y*c + Tmp.x] = NowPos;
+            }
+        }
+        Vector2Int Error = new Vector2Int(-1, -1);
+        while(hasPath&&Parent[Ans.y*c + Ans.x] != Error)
+        {
+            res.Enqueue(Ans);
+            Ans = Parent[Ans.y*c + Ans.x];
+        }
+        return res;
+    }
 }
 
-
-
-// void  tttCreatePlane()
-// {
-//     GameObject plane = new GameObject ();
-//     plane.name  = "plane";
-//     //  添加组件
-//     MeshFilter mfilter =plane.AddComponent<MeshFilter> ();
-//     MeshRenderer render =   plane.AddComponent<MeshRenderer> ();
-//     // 添加默认的材质
-//     render.material=new Material(Shader.Find("Diffuse"));
-//     //mfilter.mesh  = new Mesh ();
-//     Mesh mesh = mfilter.mesh;
-//     //  设置三个顶点
-//     mesh .vertices = new Vector3[] {
-//         new Vector3 (0, 0, 0),
-//         new Vector3 (0, 1, 0),
-//         new Vector3 (1, 1, 0)
-//     };
-//     GameObject a0 = GameObject.CreatePrimitive (PrimitiveType.Cube);
-//     a0.transform.position = mesh .vertices [0];
-//     Vector3 miniScale = new Vector3 (0.1f, 0.1f, 0.1f);
-//     a0.transform.localScale = miniScale;
-//     a0.GetComponent<MeshRenderer> ().material.color = Color.red;
-//     GameObject a1 = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-//     a1.transform.position = mesh .vertices [1];
-//     a1.transform.localScale = miniScale;
-//     a1.GetComponent<MeshRenderer> ().material.color = Color.green;
-//     GameObject a2 = GameObject.CreatePrimitive (PrimitiveType.Cylinder);
-//     a2.transform.position = mesh .vertices [2];
-//     a2.transform.localScale = miniScale;
-//     a2.GetComponent<MeshRenderer> ().material.color = Color.blue;
-//     //  设置三角形 （面）
-//     mesh.triangles = new int[]{
-//         0,1,2
-//     };
-//     // 重新计算法线
-//     mesh.RecalculateNormals ();
-// }
 }
 

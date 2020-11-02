@@ -62,6 +62,7 @@ public class CharaManager : MonoBehaviour
             }
             UseFunction.AddObject(new Vector2Int(AllyGridIndex[i].x, AllyGridIndex[i].z), NewAlly);
         }
+        M_EnemyNumber = UseFunction.EnemyNumber;
         UseFunction.ShowValue();
     }
 
@@ -73,17 +74,16 @@ public class CharaManager : MonoBehaviour
             Contro.Status = GlobalVar.BeginRound;
         }
     }
+    int m_EnemyNumber;
+    public int M_EnemyNumber { get => m_EnemyNumber; set => m_EnemyNumber = value; }
     public GameObject GetAEnemy()
     {
-        if(ChoseMark >= UseFunction.EnemyNumber)  
-        {
-            ChoseMark = 0;
+        if(ChoseMark >= M_EnemyNumber)
             return null;
-        }
         while(!AllEnemy[ChoseMark])
         {
             ++ChoseMark;
-            if(ChoseMark >= UseFunction.EnemyNumber)
+            if(ChoseMark >= M_EnemyNumber)
                 return null;
         }
         return AllEnemy[ChoseMark++];

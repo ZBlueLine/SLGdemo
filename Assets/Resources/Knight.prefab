@@ -1034,7 +1034,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b365ee5046b39d049bed4b45586ca0ad, type: 2}
+  - {fileID: 2100000, guid: bb570020a8c3bad4bbf803af20e78937, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1668,7 +1668,7 @@ GameObject:
   - component: {fileID: -534602896676190600}
   - component: {fileID: 5995905599308963871}
   m_Layer: 0
-  m_Name: Enemyunitychan
+  m_Name: Knight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1721,17 +1721,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 481318b6f1aa079449aa57478b74b424, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveRange: 2
+  MoveRange: 4
   AttackRange: 1
-  speed: 5
+  MinAttackRange: 0
+  speed: 3
   turnSpeed: 18
-  MaxHp: 100
+  MaxHp: 200
   CurrentHp: 15
   TeamTag: 0
   RangeMaterial: {fileID: 2100000, guid: 7f7ab52580dbd0f4da7f58b0d6876ffc, type: 2}
   AttackMaterial: {fileID: 2100000, guid: 2f7f5330df32f7b4d89801b658c0a17d, type: 2}
-  ATK: 10
-  PropertyUI: {fileID: 8768348475365335878, guid: dcf74c60cd44c4945bb5c7ff0d52f0a9,
+  ATK: 15
+  PropertyUI: {fileID: 8768348475365335878, guid: d46c95133a430c543ba480abc1da49d3,
     type: 3}
 --- !u!54 &5995905599308963871
 Rigidbody:
@@ -2124,7 +2125,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b365ee5046b39d049bed4b45586ca0ad, type: 2}
+  - {fileID: 2100000, guid: bb570020a8c3bad4bbf803af20e78937, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2237,7 +2238,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b365ee5046b39d049bed4b45586ca0ad, type: 2}
+  - {fileID: 2100000, guid: bb570020a8c3bad4bbf803af20e78937, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2376,7 +2377,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b365ee5046b39d049bed4b45586ca0ad, type: 2}
+  - {fileID: 2100000, guid: bb570020a8c3bad4bbf803af20e78937, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
