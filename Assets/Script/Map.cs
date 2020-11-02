@@ -5,6 +5,7 @@ using Global;
 using UnityEngine;
 using Utils;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 public class Map : MonoBehaviour
 {
     //Property
@@ -106,11 +107,13 @@ public class Map : MonoBehaviour
         if(EnemyNumber == 0)
         {
             Debug.Log("Victory");
+            SceneManager.LoadScene("Victory");
             return;
         }
         else if(CharaNumber == 0)
         {
             Debug.Log("GameOver");
+            SceneManager.LoadScene("Lose");
             return;
         }
         Debug.Log("move  "+ Moveing);
