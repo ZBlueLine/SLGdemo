@@ -13,7 +13,10 @@ public class Map : MonoBehaviour
 
     public int CellSize;
     int charanumber;
+    int enemynumber;
+    
     public int CharaNumber{get => charanumber; set => charanumber = value;}
+    public int EnemyNumber{get => enemynumber; set => enemynumber = value;}
 
     public Vector3 TargetPos;
     Vector3Int aimpoint;
@@ -36,6 +39,8 @@ public class Map : MonoBehaviour
     bool moveing;
     bool enemyTurn;
     bool playerTurn;
+    bool inAttack;
+    public bool InAttack { get => inAttack; set => inAttack = value; }
     public bool EnemyTurn { get => enemyTurn; set => enemyTurn = value; }
     public bool PlayerTurn { get => playerTurn; set => playerTurn = value; }
 
@@ -43,9 +48,12 @@ public class Map : MonoBehaviour
     int actionend;
     public int ActionEnd{get => actionend; set => actionend = value;}
     public bool Moveing { get => moveing; set => moveing = value; }
+
     CharaManager charaMange;
 
     Vector3 LastPressLocation;
+
+
 
     void Awake()
     {
@@ -54,6 +62,8 @@ public class Map : MonoBehaviour
         PlayerTurn = false;
         Moveing = false;
         GridStatus.MyMap = this;
+        EnemyNumber = 0;
+        CharaNumber = 0;
         ClickMark = new List<GameObject>();
         gridArry = new GridStatus [Width, Height];
         AttackArry = new GridStatus [Width, Height];
@@ -88,17 +98,26 @@ public class Map : MonoBehaviour
 
     void Update()
     {   
-        if(Moveing)return;
+        if(EnemyNumber == 0)
+        {
+            Debug.Log("Victory");
+            return;
+        }
+        else if(CharaNumber == 0)
+        {
+            Debug.Log("GameOver");
+            return;
+        }
+        Debug.Log("move  "+ Moveing);
+        if(Moveing||InAttack)return;
         if(!PlayerTurn&&EnemyTurn)
         {
             if(ChosedEnemy&&CanAttack)
             {
                 CharaCon.Damaged(EnemyCon.ATK);
                 CanAttack = false;
-                Debug.Log("ATK!!!!!!!!!");
             }
             ChosedEnemy = charaMange.GetAEnemy();
-            Debug.Log(ChosedEnemy);
             if(!ChosedEnemy)
             {
                 PlayerTurn = true;
@@ -110,8 +129,10 @@ public class Map : MonoBehaviour
             {
                 EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
                 ChoseChara = charaMange.GetNearestChara(EnemyCon.GetIndex());
-
-                CharaCon = ChoseChara.GetComponent<CharaController>();
+                if(ChoseChara)
+                    CharaCon = ChoseChara.GetComponent<CharaController>();
+                else 
+                    return;
 
                 Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  gridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
 
@@ -124,7 +145,6 @@ public class Map : MonoBehaviour
                         Path.Dequeue();
                     else
                     {
-                        Debug.Log(Path.Peek());
                         EnemyCon.AddMoveAction(Path.Dequeue());
                     }
                 }
@@ -173,6 +193,7 @@ public class Map : MonoBehaviour
             CanAttack = false;
             PlayerTurn = false;
             EnemyTurn = true;
+            charaMange.ChoseMark = 0;
         }
     }
 

@@ -1721,8 +1721,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 481318b6f1aa079449aa57478b74b424, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveRange: 2
-  AttackRange: 1
+  MoveRange: 4
+  AttackRange: 2
   speed: 3
   turnSpeed: 18
   MaxHp: 200

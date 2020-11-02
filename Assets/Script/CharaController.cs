@@ -34,6 +34,7 @@ public class CharaController : MonoBehaviour
     Vector3 NextPosition;
     bool IsWalking;
     bool BeDamaged;
+    bool Death;
     public int ATK;
     Rigidbody m_Rigidbody;
     Vector3 m_Movement;
@@ -51,13 +52,8 @@ public class CharaController : MonoBehaviour
 
     void Start()
     {
-        // CurrentHp = MaxHp;
+        Death = false;
         DirList = new Stack<Vector2Int>();
-        // DirList.Push(new Vector2Int(0, 1));
-        // DirList.Push(new Vector2Int(2, 2));
-        // DirList.Push(new Vector2Int(4, 0));
-        // DirList.Push(new Vector2Int(4, 6));
-        // DirList.Push(new Vector2Int(1, 1));
         MyMap = InMap1.gameObject.GetComponent<Map>();
         m_Animator = GetComponent<Animator>();
         m_Rigidbody = GetComponent<Rigidbody>();
@@ -93,6 +89,24 @@ public class CharaController : MonoBehaviour
         m_Animator.SetInteger("WaitStatus", WaitStatus);
         m_Animator.SetBool ("IsWalking", IsWalking);
         m_Animator.SetBool("BeDamaged", BeDamaged);
+        m_Animator.SetBool("Death", Death);
+        if(Death)
+        {
+            AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
+            if(m_Animainfo.normalizedTime >= 1f)
+            {
+                Debug.Log("death！！！");
+                MyMap.SetGridValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
+                Destroy(gameObject);
+                MyMap.InAttack = false;
+                if(TeamTag == GlobalVar.IsEnemy)
+                    --MyMap.EnemyNumber;
+                else
+                    --MyMap.CharaNumber;
+                MyMap.CheckTurn();
+            }
+            return;
+        }
         if(IsWalking)
         {
             WaitStatus = 0;
@@ -101,8 +115,13 @@ public class CharaController : MonoBehaviour
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, m_Movement, turnSpeed * Time.deltaTime, 0f);
             m_Rotation = Quaternion.LookRotation(desiredForward);
             gameObject.transform.position = Vector3.MoveTowards(gameObject.transform.position, NextPosition, step);
+            Debug.Log("gameObject.transform.position  "+gameObject.transform.position);
+            Debug.Log("NextPosition  "+NextPosition);
             if(gameObject.transform.position.Equals(NextPosition))
+            {
+                Debug.Log("next");
                 Move();
+            }
         }
         else if(BeDamaged)
         {
@@ -111,6 +130,8 @@ public class CharaController : MonoBehaviour
             {
                 BeDamaged = false;
                 WaitStatus = 0;
+                MyMap.CheckTurn();
+                MyMap.InAttack = false;
             }
         }
         else if(NowTime - LastActTime > (Random.Range(4, 7)))
@@ -133,6 +154,10 @@ public class CharaController : MonoBehaviour
     {
         BeDamaged = true;
         CurrentHp -= Value;
+        Debug.Log(CurrentHp+ "!!!!!!!");
+        Debug.Log(Value+"???????????");
+        if(CurrentHp <= 0)
+            Death = true;
     }
 
     public void AddMoveAction(Vector2Int Position)
@@ -211,17 +236,20 @@ public class CharaController : MonoBehaviour
                 else
                     MyMap.AddClickMark(UtilsTool.CreatePlane(NowIndex, CellSize, InMap1.transform, AttackMaterial));
                 
-                //敌人角色在这里直接下一轮循环
+                //敌人角色在这里直接下一轮循环,不需要对地图数值进行设置
                 if(!SetValue)continue;
 
+                //如果是攻击选择只修改攻击表格
                 if(Mark.statucode == GlobalVar.Attack)
                     if(TeamTag == GlobalVar.IsChara&&Statuscode == GlobalVar.IsEnemy)
                         MyMap.SetAttackValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), Mark);
                     else
                         MyMap.SetAttackValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), StatusofChose);
-                // if(NowIndex.x == Index.x&&NowIndex.z == Index.y)continue;
-                else if(StatusofChose.statucode > GlobalVar.CannotMove)
+                //如果该位置显示的是可攻击位置，则填充准备攻击状态
+                else if(StatusofChose.statucode > GlobalVar.CannotMove&&visValue != 2)
                     MyMap.SetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), Mark);
+                else if(StatusofChose.statucode > GlobalVar.CannotMove)
+                    MyMap.SetGridValue(new Vector2Int((int)NowIndex.x, (int)NowIndex.z), PrepareAttackststus.getInstance());
             }
         }
         MyMap.ShowValue();
@@ -229,7 +257,7 @@ public class CharaController : MonoBehaviour
 
     public void ShowMoveRange(bool SetValue = true)
     {
-        UtilsTool.BFS(MyMap.Height,MyMap.Width,  MyMap.gridArry, Index, new Vector2Int(-1, -1), MoveRange+AttackRange);
+        UtilsTool.BFS(MyMap.Height,MyMap.Width,  MyMap.gridArry, Index, new Vector2Int(-1, -1), MoveRange+AttackRange, AttackRange);
         ShowRange(0, MoveRange+AttackRange, PrepareMoveStatus.getInstance(), SetValue);
     }
     public void ShowAttackRange()

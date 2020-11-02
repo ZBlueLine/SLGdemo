@@ -68,7 +68,7 @@ class UtilsTool
     {
         return vis[z*Width + x];
     }
-    public static Queue<Vector2Int> BFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Range = 0x3f3f3f)
+    public static Queue<Vector2Int> BFS(int r, int c, GridStatus[,] map, Vector2Int StartP, Vector2Int EndP, int Range = 0x3f3f3f, int AttackRange = 1)
     {
         Vector2Int [] Parent = Enumerable.Repeat(new Vector2Int(-1, -1), r*c+10).ToArray();
         vis = Enumerable.Repeat(0, r*c+10).ToArray();
@@ -90,6 +90,8 @@ class UtilsTool
             ny = NowPos.Pos.y;
             vis[ny*c + nx] = 1;
             if(hasPath)break;
+            if((NowPos.StepLen + AttackRange) > Range)
+                vis[ny*c + nx] = 2;
             if((NowPos.StepLen + 1) > Range)
             {
                 vis[ny*c + nx] = 2;
@@ -128,7 +130,6 @@ class UtilsTool
             res.Enqueue(Ans);
             Ans = Parent[Ans.y*c + Ans.x];
         }
-        Debug.Log(res);
         return res;
     }
 

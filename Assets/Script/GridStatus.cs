@@ -29,7 +29,6 @@ public class IsCharaStatus : GridStatus
     {
         MyMap.PrepareAttack = false;
         CharaController selectchara;
-        Debug.Log("have Chara");
         if(SelectedChara)
         {
             selectchara = SelectedChara.gameObject.GetComponent<CharaController>();
@@ -43,7 +42,6 @@ public class IsCharaStatus : GridStatus
         }
         else if(selectchara.Status < GlobalVar.Attacked)
         {
-            Debug.Log("ShowAttackRange");
             MyMap.PrepareAttack = true;
             selectchara.ShowAttackRange();
         }
@@ -97,7 +95,6 @@ public class PrepareMoveStatus : GridStatus
     }
     public override void Operation(int x, int y)
     {
-        Debug.Log("PrepareMove");
         CharaController m_Controller = SelectedChara.GetComponent<CharaController>();
         if(m_Controller.TeamTag == GlobalVar.IsEnemy)return;
         Vector2Int StartPos = m_Controller.GetIndex();
@@ -153,8 +150,8 @@ public class Attackststus : GridStatus
         CharaController selectedchara = SelectedChara.GetComponent<CharaController>();
         CharaController ToChara = MyMap.GetObject(new Vector2Int(x, y)).GetComponent<CharaController>();
         ToChara.Damaged(selectedchara.ATK);
+        MyMap.InAttack = true;
         ++MyMap.ActionEnd;
-        MyMap.CheckTurn();
         selectedchara.Status = GlobalVar.Attacked;
     }
 }
@@ -199,5 +196,31 @@ public class ErrorStatus : GridStatus
             Myinstance.statucode = GlobalVar.FailLcation;
         }
         return Myinstance;
+    }
+}
+public class Blockstatus : GridStatus
+{
+    static GridStatus Myinstance;
+    private Blockstatus(){}
+    public static GridStatus getInstance()
+    {
+        if(Myinstance == null)
+        {
+            Myinstance = new Blockstatus();
+            Myinstance.statucode = GlobalVar.Block;
+        }
+        return Myinstance;
+    }
+    public override void Operation(int x, int y)
+    {
+        MyMap.PrepareAttack = false;
+        if(SelectedChara)
+        {
+            CharaController selectchara = SelectedChara.gameObject.GetComponent<CharaController>();
+            selectchara.Closeproperties();
+        }
+        SelectedChara = MyMap.GetObject(new Vector2Int(x, y));
+        MyMap.AddClickMark(UtilsTool.CreatePlane(MyMap.AimPoint, MyMap.CellSize, MyMap.transform, MyMap.SelectBlockColor));
+        MyMap.ShowValue();
     }
 }

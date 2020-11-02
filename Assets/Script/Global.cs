@@ -5,6 +5,7 @@ public class GlobalVar
 {
     public const int IsChara = 1;
     public const int IsEnemy = 2;
+    public const int Block = 3;
     public const int CannotMove = 10;
     public const int PrepareMove = 20;
     public const int PrepareAttack = 30;
