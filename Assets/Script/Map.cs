@@ -43,12 +43,13 @@ public class Map : MonoBehaviour
     int actionend;
     public int ActionEnd{get => actionend; set => actionend = value;}
     public bool Moveing { get => moveing; set => moveing = value; }
-    CharaManager charaManget;
+    CharaManager charaMange;
 
     Vector3 LastPressLocation;
 
     void Awake()
     {
+        CanAttack = false;
         EnemyTurn = false;
         PlayerTurn = false;
         Moveing = false;
@@ -75,33 +76,57 @@ public class Map : MonoBehaviour
         }
     }
 
-    private void Start() => charaManget = transform.Find("CharaManager").gameObject.GetComponent<CharaManager>();
+    private void Start() => charaMange = transform.Find("CharaManager").gameObject.GetComponent<CharaManager>();
+
+    GameObject ChosedEnemy;
+    GameObject ChoseChara;
+    CharaController EnemyCon;
+
+    CharaController CharaCon;
+    //记录上一次的ai移动以后是否可以攻击
+    bool CanAttack;
 
     void Update()
     {   
         if(Moveing)return;
         if(!PlayerTurn&&EnemyTurn)
         {
-            GameObject ChosedEnemy = charaManget.GetAEnemy();
+            if(ChosedEnemy&&CanAttack)
+            {
+                CharaCon.Damaged(EnemyCon.ATK);
+                CanAttack = false;
+                Debug.Log("ATK!!!!!!!!!");
+            }
+            ChosedEnemy = charaMange.GetAEnemy();
             Debug.Log(ChosedEnemy);
             if(!ChosedEnemy)
             {
                 PlayerTurn = true;
                 EnemyTurn = false;
+                charaMange.NewRound();
+                ActionEnd = 0;
             }
             else
             {
-                CharaController EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
-                GameObject ChoseChara = charaManget.GetNearestChara(EnemyCon.GetIndex());
+                EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
+                ChoseChara = charaMange.GetNearestChara(EnemyCon.GetIndex());
 
-                CharaController CharaCon = ChoseChara.GetComponent<CharaController>();
+                CharaCon = ChoseChara.GetComponent<CharaController>();
 
                 Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  gridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
-                //抛弃最后一个位置，最后一个位置是有角色的
-                while(Path.Count != 0)
+
+                int cnt = EnemyCon.MoveRange;
+                if(Path.Count <= cnt)
+                    CanAttack = true;
+                while(Path.Count > 0)
                 {
-                    Debug.Log(Path.Peek());
-                    EnemyCon.AddMoveAction(Path.Dequeue());
+                    if(Path.Count > cnt)
+                        Path.Dequeue();
+                    else
+                    {
+                        Debug.Log(Path.Peek());
+                        EnemyCon.AddMoveAction(Path.Dequeue());
+                    }
                 }
                 Moveing = true;
                 EnemyCon.Move();
@@ -145,6 +170,7 @@ public class Map : MonoBehaviour
     {
         if(ActionEnd == CharaNumber)
         {
+            CanAttack = false;
             PlayerTurn = false;
             EnemyTurn = true;
         }
@@ -152,6 +178,7 @@ public class Map : MonoBehaviour
 
     public void ReSetGridValue()
     {
+        PrepareAttack = false;
         if(ClickMark.Count != 0)
         {
             foreach(GameObject c in ClickMark)

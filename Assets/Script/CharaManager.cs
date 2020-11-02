@@ -102,4 +102,16 @@ public class CharaManager : MonoBehaviour
         }
         return res;
     }
+
+    public void NewRound()
+    {
+        foreach(var c in AllChara)
+        {
+            c.GetComponent<CharaController>().Status = GlobalVar.BeginRound;
+        }
+        foreach(var c in AllEnemy)
+        {
+            c.GetComponent<CharaController>().Status = GlobalVar.BeginRound;
+        }
+    }
 }

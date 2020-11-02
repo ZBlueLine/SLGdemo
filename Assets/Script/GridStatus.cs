@@ -114,14 +114,7 @@ public class PrepareMoveStatus : GridStatus
             m_Controller.AddMoveAction(Path.Dequeue());
         MyMap.Moveing = true;
 
-        //原位置标记为空位置
-        MyMap.SetGridValue(new Vector2Int(StartPos.x, StartPos.y), EmptyLcationstatus.getInstance());
-
         m_Controller.Move();
-        m_Controller.Status = GlobalVar.Moved;
-        GameObject Tmp = MyMap.ObjectArry[StartPos.x][StartPos.y];
-        MyMap.ObjectArry[StartPos.x][StartPos.y] =  MyMap.ObjectArry[x][y];
-        MyMap.ObjectArry[x][y] = Tmp;
         MyMap.ShowValue();
     }
 }

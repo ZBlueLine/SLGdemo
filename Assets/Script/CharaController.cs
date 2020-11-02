@@ -63,7 +63,6 @@ public class CharaController : MonoBehaviour
         m_Rigidbody = GetComponent<Rigidbody>();
         WaitStatus = 0;
         LastActTime = Time.time;
-        Move();
     }
 
     public void SetIndex(int x, int y)
@@ -154,7 +153,14 @@ public class CharaController : MonoBehaviour
         else 
         {
             MyMap.Moveing = false;
+            //原位置标记为空位置
+            MyMap.SetGridValue(new Vector2Int(Index.x, Index.y), EmptyLcationstatus.getInstance());
             Vector3 tmp = MyMap.WorldToGridIndex(gameObject.transform.position);
+            Status = GlobalVar.Moved;
+            GameObject Tmp = MyMap.ObjectArry[Index.x][Index.y];
+            MyMap.ObjectArry[Index.x][Index.y] =  MyMap.ObjectArry[(int)tmp.x][(int)tmp.z];
+            MyMap.ObjectArry[(int)tmp.x][(int)tmp.z] = Tmp;
+            
             SetIndex((int)tmp.x, (int)tmp.z);
             IsWalking = false;
             if(TeamTag == GlobalVar.IsChara)
