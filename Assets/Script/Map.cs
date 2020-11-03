@@ -206,6 +206,7 @@ public class Map : MonoBehaviour
             Debug.Log("CheckTurn");
             if(ActionEnd >= CharaNumber)
             {
+                ReSetGridValue();
                 StartCoroutine(gameObject.GetComponent<ShowTurn>().EnemyTrun());
                 yield return new WaitForSeconds(2f);
                 CanAttack = false;
@@ -217,6 +218,7 @@ public class Map : MonoBehaviour
             }
             else if(Enemyactionend >= EnemyNumber)
             {
+                ReSetGridValue();
                 StartCoroutine(gameObject.GetComponent<ShowTurn>().PlayerTrun());
                 yield return new WaitForSeconds(2f);
                 PlayerTurn = true;

@@ -15,7 +15,7 @@ public class ShowTurn : MonoBehaviour
     {
         GameObject PlayerUI = Instantiate(PlayerTrunUI, new Vector3(20, -4, 0), Quaternion.identity) as GameObject;
         PlayerUI.transform.SetParent(MyCanvas.transform, false);
-        yield return new WaitForSeconds(2.1f);
+        yield return new WaitForSeconds(1.9f);
         Destroy(PlayerUI);
     }
 
@@ -23,7 +23,7 @@ public class ShowTurn : MonoBehaviour
     {
         GameObject EnemyUI = Instantiate(EnemyTrunUI, new Vector3(20, -4, 0), Quaternion.identity) as GameObject;
         EnemyUI.transform.SetParent(MyCanvas.transform, false);
-        yield return new WaitForSeconds(2.1f);
+        yield return new WaitForSeconds(1.4f);
         Destroy(EnemyUI);
     }
 }
