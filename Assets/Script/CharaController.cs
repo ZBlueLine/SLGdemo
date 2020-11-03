@@ -313,6 +313,7 @@ public class CharaController : MonoBehaviour
     }
     public void ShowAttackRange(bool SetValue = true)
     {
+        MyMap.PrepareAttack = true;
         ShowRange(MinAttackRange, AttackRange, Attackststus.getInstance(), SetValue);
         MyMap.SetAttackValue(new Vector2Int((int)Index.x, (int)Index.y), IsCharaStatus.getInstance());
     }

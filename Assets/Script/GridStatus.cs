@@ -42,7 +42,7 @@ public class IsCharaStatus : GridStatus
         }
         else if(selectchara.Status < GlobalVar.Attacked)
         {
-            MyMap.PrepareAttack = true;
+            // MyMap.PrepareAttack = true;
             selectchara.ShowAttackRange();
         }
         selectchara.Showproperties();

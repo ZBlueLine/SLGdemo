@@ -503,6 +503,7 @@ GameObject:
   - component: {fileID: 1779341628}
   - component: {fileID: 1779341627}
   - component: {fileID: 1779341629}
+  - component: {fileID: 1779341630}
   m_Layer: 0
   m_Name: Map
   m_TagString: Map
@@ -573,6 +574,22 @@ MonoBehaviour:
   CellSize: 2
   TargetPos: {x: 0, y: 0, z: 0}
   SelectBlockColor: {fileID: 2100000, guid: f5d4a016d4633574aac63f22bac1a74b, type: 2}
+--- !u!114 &1779341630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1779341626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 779dc09899436684dbd68ce98d56547b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerTrunUI: {fileID: 8864506913610789484, guid: 95c7d356093b03e429256c65620a6c19,
+    type: 3}
+  EnemyTrunUI: {fileID: 8864506913610789484, guid: 9aa858358e12bfd46897d52d763b4f5a,
+    type: 3}
 --- !u!1 &1930168410
 GameObject:
   m_ObjectHideFlags: 0

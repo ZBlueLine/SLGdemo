@@ -1727,8 +1727,8 @@ MonoBehaviour:
   MinAttackRange: 0
   speed: 3
   turnSpeed: 18
-  MaxHp: 200
-  CurrentHp: 15
+  MaxHp: 100
+  CurrentHp: 100
   TeamTag: 0
   RangeMaterial: {fileID: 2100000, guid: 7f7ab52580dbd0f4da7f58b0d6876ffc, type: 2}
   AttackMaterial: {fileID: 2100000, guid: 2f7f5330df32f7b4d89801b658c0a17d, type: 2}
