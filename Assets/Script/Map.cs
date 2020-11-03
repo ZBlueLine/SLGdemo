@@ -91,7 +91,11 @@ public class Map : MonoBehaviour
         }
     }
 
-    private void Start() => charaMange = transform.Find("CharaManager").gameObject.GetComponent<CharaManager>();
+    private void Start()
+    {
+        charaMange = transform.Find("CharaManager").gameObject.GetComponent<CharaManager>();
+        StartCoroutine(CheckTurn());
+    }
 
     GameObject ChosedEnemy;
     GameObject ChoseChara;
@@ -118,7 +122,6 @@ public class Map : MonoBehaviour
         }
         Debug.Log("move  "+ Moveing);
         if(Moveing||InAttack)return;
-        CheckTurn();
         if(!PlayerTurn&&EnemyTurn)
         {
             if(ChosedEnemy&&CanAttack)
@@ -195,23 +198,30 @@ public class Map : MonoBehaviour
         }
     }
 
-    public void CheckTurn()
+    public IEnumerator CheckTurn()
     {
-        if(ActionEnd >= CharaNumber)
+        while(true)
         {
-            CanAttack = false;
-            PlayerTurn = false;
-            EnemyTurn = true;
-            charaMange.NewRound();
-            charaMange.ChoseMark = 0;
-            ActionEnd = 0;
-        }
-        if(Enemyactionend >= EnemyNumber)
-        {
-            PlayerTurn = true;
-            EnemyTurn = false;
-            charaMange.NewRound();
-            Enemyactionend = 0;
+            Debug.Log("CheckTurn");
+            if(ActionEnd >= CharaNumber)
+            {
+                yield return new WaitForSeconds(2f);
+                CanAttack = false;
+                PlayerTurn = false;
+                EnemyTurn = true;
+                charaMange.NewRound();
+                charaMange.ChoseMark = 0;
+                ActionEnd = 0;
+            }
+            else if(Enemyactionend >= EnemyNumber)
+            {
+                yield return new WaitForSeconds(2f);
+                PlayerTurn = true;
+                EnemyTurn = false;
+                charaMange.NewRound();
+                Enemyactionend = 0;
+            }
+            yield return null;
         }
     }
 

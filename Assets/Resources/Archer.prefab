@@ -1667,6 +1667,7 @@ GameObject:
   - component: {fileID: 2920961559400517833}
   - component: {fileID: -534602896676190600}
   - component: {fileID: 5995905599308963871}
+  - component: {fileID: -462643028508345395}
   m_Layer: 0
   m_Name: Archer
   m_TagString: Untagged
@@ -1750,6 +1751,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!114 &-462643028508345395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2920961559393133135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f9c6539a2b12d4eaf9275142e6ba46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Bullet: {fileID: 815607774296680860, guid: 59fe224ec75eda4438ea9db42e5fbd1e, type: 3}
+  Speed: 40
+  AttackRange: 2
 --- !u!1 &2920961559393133153
 GameObject:
   m_ObjectHideFlags: 0

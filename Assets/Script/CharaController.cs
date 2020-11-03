@@ -2,6 +2,7 @@
 using Utils;
 using Global;
 using System.Collections.Generic;
+using System.Collections;
 
 public class CharaController : MonoBehaviour
 {
@@ -84,8 +85,49 @@ public class CharaController : MonoBehaviour
         m_Rigidbody.MoveRotation (m_Rotation);
     }
 
+    private IEnumerator  WaiteDeath()
+    {
+        Debug.Log("death！！！");
+        yield return new WaitForSeconds(2f);
+        MyMap.ReSetGridValue();
+        Debug.Log("death222！！！");
+        Closeproperties();
+        MyMap.SetGridValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
+        MyMap.SetAttackValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
+        if(TeamTag == GlobalVar.IsEnemy)
+        {
+            --MyMap.EnemyNumber;
+            ++MyMap.ActionEnd;
+        }
+        else
+        {
+            --MyMap.CharaNumber;
+            ++MyMap.Enemyactionend;
+        }
+        Destroy(gameObject);
+        MyMap.InAttack = false;
+        yield return null;
+    }
+
+    private IEnumerator  WaiteDamage()
+    {
+        Debug.Log("WaiteDamage");
+        yield return new WaitForSeconds(2f);
+        MyMap.ReSetGridValue();
+        if(TeamTag == GlobalVar.IsEnemy)
+            ++MyMap.ActionEnd;
+        else 
+            ++MyMap.Enemyactionend;
+        BeDamaged = false;
+        WaitStatus = 0;
+        MyMap.InAttack = false;
+        Debug.Log("WaiteDamage2");
+        yield return null;
+    }
+
     void FixedUpdate ()
     {
+        m_Rigidbody.MoveRotation (m_Rotation);
         float NowTime = Time.time;
         m_Animator.SetInteger("WaitStatus", WaitStatus);
         m_Animator.SetBool ("IsWalking", IsWalking);
@@ -93,28 +135,6 @@ public class CharaController : MonoBehaviour
         m_Animator.SetBool("Death", Death);
         if(Death)
         {
-            AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-            if(m_Animainfo.normalizedTime >= 1f)
-            {
-                
-                MyMap.ReSetGridValue();
-                Debug.Log("death！！！");
-                Closeproperties();
-                MyMap.SetGridValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
-                MyMap.SetAttackValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
-                if(TeamTag == GlobalVar.IsEnemy)
-                {
-                    --MyMap.EnemyNumber;
-                    ++MyMap.ActionEnd;
-                }
-                else
-                {
-                    --MyMap.CharaNumber;
-                    ++MyMap.Enemyactionend;
-                }
-                Destroy(gameObject);
-                MyMap.InAttack = false;
-            }
             return;
         }
         if(IsWalking)
@@ -124,27 +144,15 @@ public class CharaController : MonoBehaviour
             m_Movement.Normalize();
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, m_Movement, turnSpeed * Time.deltaTime, 0f);
             m_Rotation = Quaternion.LookRotation(desiredForward);
-            gameObject.transform.position = Vector3.MoveTowards(gameObject.transform.position, NextPosition, step);
-            
-            if(gameObject.transform.position.Equals(NextPosition))
+            transform.position = Vector3.MoveTowards(transform.position, NextPosition, step);
+            if(transform.position.Equals(NextPosition))
             {
                 Move();
             }
         }
         else if(BeDamaged)
         {
-            AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-            if(m_Animainfo.normalizedTime >= 1f)
-            {
-                MyMap.ReSetGridValue();
-                if(TeamTag == GlobalVar.IsEnemy)
-                    ++MyMap.ActionEnd;
-                else 
-                    ++MyMap.Enemyactionend;
-                BeDamaged = false;
-                WaitStatus = 0;
-                MyMap.InAttack = false;
-            }
+            return;
         }
         else if(NowTime - LastActTime > (Random.Range(4, 7)))
         {
@@ -167,11 +175,20 @@ public class CharaController : MonoBehaviour
         BeDamaged = true;
         CurrentHp -= Value;
         if(CurrentHp <= 0)
+        {
             Death = true;
+            StartCoroutine(WaiteDeath());
+            return;
+        }
+        StartCoroutine(WaiteDamage());
+        return;
     }
 
     public void Attack(GameObject Enemy)
     {
+        Vector3 desiredForward = Enemy.transform.localPosition - transform.localPosition;
+        m_Rotation = Quaternion.LookRotation(desiredForward);
+        gameObject.GetComponent<ShotBox>().Shot(desiredForward);
         Enemy.GetComponent<CharaController>().Damaged(ATK);
         MyMap.InAttack = true;
         Status = GlobalVar.Attacked;
