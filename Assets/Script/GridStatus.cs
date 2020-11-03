@@ -154,11 +154,8 @@ public class Attackststus : GridStatus
     {
         MyMap.PrepareAttack = false;
         CharaController selectedchara = SelectedChara.GetComponent<CharaController>();
-        CharaController ToChara = MyMap.GetObject(new Vector2Int(x, y)).GetComponent<CharaController>();
-        ToChara.Damaged(selectedchara.ATK);
-        MyMap.InAttack = true;
-        ++MyMap.ActionEnd;
-        selectedchara.Status = GlobalVar.Attacked;
+        GameObject ToChara = MyMap.GetObject(new Vector2Int(x, y));
+        selectedchara.Attack(ToChara);
     }
 }
 

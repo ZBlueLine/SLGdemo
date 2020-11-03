@@ -96,18 +96,24 @@ public class CharaController : MonoBehaviour
             AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
             if(m_Animainfo.normalizedTime >= 1f)
             {
+                
+                MyMap.ReSetGridValue();
                 Debug.Log("death！！！");
-
+                Closeproperties();
                 MyMap.SetGridValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
                 MyMap.SetAttackValue(gameObject.GetComponent<CharaController>().GetIndex(), EmptyLcationstatus.getInstance());
-
+                if(TeamTag == GlobalVar.IsEnemy)
+                {
+                    --MyMap.EnemyNumber;
+                    ++MyMap.ActionEnd;
+                }
+                else
+                {
+                    --MyMap.CharaNumber;
+                    ++MyMap.Enemyactionend;
+                }
                 Destroy(gameObject);
                 MyMap.InAttack = false;
-                if(TeamTag == GlobalVar.IsEnemy)
-                    --MyMap.EnemyNumber;
-                else
-                    --MyMap.CharaNumber;
-                MyMap.CheckTurn();
             }
             return;
         }
@@ -130,9 +136,13 @@ public class CharaController : MonoBehaviour
             AnimatorStateInfo m_Animainfo = m_Animator.GetCurrentAnimatorStateInfo(0);
             if(m_Animainfo.normalizedTime >= 1f)
             {
+                MyMap.ReSetGridValue();
+                if(TeamTag == GlobalVar.IsEnemy)
+                    ++MyMap.ActionEnd;
+                else 
+                    ++MyMap.Enemyactionend;
                 BeDamaged = false;
                 WaitStatus = 0;
-                MyMap.CheckTurn();
                 MyMap.InAttack = false;
             }
         }
@@ -156,12 +166,16 @@ public class CharaController : MonoBehaviour
     {
         BeDamaged = true;
         CurrentHp -= Value;
-        Debug.Log(CurrentHp+ "!!!!!!!");
-        Debug.Log(Value+"???????????");
         if(CurrentHp <= 0)
             Death = true;
     }
 
+    public void Attack(GameObject Enemy)
+    {
+        Enemy.GetComponent<CharaController>().Damaged(ATK);
+        MyMap.InAttack = true;
+        Status = GlobalVar.Attacked;
+    }
     public void AddMoveAction(Vector2Int Position)
     {
         DirList.Push(Position);
@@ -186,8 +200,10 @@ public class CharaController : MonoBehaviour
         {   
             while(DirList.Count>0)
                 DirList.Pop();
-            if(len <= AttackRange&&len > MinAttackRange)
+            if(len <= AttackRange&&len > MinAttackRange&&TeamTag == GlobalVar.IsEnemy)
                 MyMap.CanAttack = true;
+            if(!MyMap.CanAttack&&TeamTag == GlobalVar.IsEnemy)
+                ++MyMap.Enemyactionend;
             MyMap.Moveing = false;
             //原位置标记为空位置
             MyMap.SetGridValue(new Vector2Int(Index.x, Index.y), EmptyLcationstatus.getInstance());
@@ -203,6 +219,7 @@ public class CharaController : MonoBehaviour
                 MyMap.SetGridValue(new Vector2Int((int)tmp.x, (int)tmp.z), IsCharaStatus.getInstance());
             else 
                 MyMap.SetGridValue(new Vector2Int((int)tmp.x, (int)tmp.z), IsEnemyStatus.getInstance());
+            ShowAttackRange();
         }
     }
 

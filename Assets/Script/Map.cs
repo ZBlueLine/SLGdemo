@@ -115,33 +115,29 @@ public class Map : MonoBehaviour
         }
         Debug.Log("move  "+ Moveing);
         if(Moveing||InAttack)return;
+        CheckTurn();
         if(!PlayerTurn&&EnemyTurn)
         {
             if(ChosedEnemy&&CanAttack)
             {
-                CharaCon.Damaged(EnemyCon.ATK);
+                EnemyCon.Attack(ChoseChara);
                 CanAttack = false;
+                return;
             }
             ChosedEnemy = charaMange.GetAEnemy();
-            if(!ChosedEnemy)
+            if(ChosedEnemy)
             {
-                CheckTurn();
-                charaMange.NewRound();
-                ActionEnd = 0;
-                Enemyactionend = 0;
-            }
-            else
-            {
-                ++Enemyactionend;
                 EnemyCon =  ChosedEnemy.GetComponent<CharaController>();
                 ChoseChara = charaMange.GetNearestChara(EnemyCon.GetIndex());
                 if(ChoseChara)
                     CharaCon = ChoseChara.GetComponent<CharaController>();
                 else 
+                {
+                    ++Enemyactionend;
                     return;
+                }
 
                 Queue<Vector2Int> Path =  UtilsTool.BFS(Height, Width,  GridArry, EnemyCon.GetIndex(), CharaCon.GetIndex());
-
                 int cnt = EnemyCon.MoveRange + EnemyCon.AttackRange;
                 if(Path.Count < cnt)
                     CanAttack = true;
@@ -198,18 +194,22 @@ public class Map : MonoBehaviour
 
     public void CheckTurn()
     {
-        if(ActionEnd == CharaNumber)
+        if(ActionEnd >= CharaNumber)
         {
             CanAttack = false;
             PlayerTurn = false;
             EnemyTurn = true;
+            charaMange.NewRound();
+            charaMange.ChoseMark = 0;
+            ActionEnd = 0;
         }
-        if(Enemyactionend == EnemyNumber)
+        if(Enemyactionend >= EnemyNumber)
         {
             PlayerTurn = true;
             EnemyTurn = false;
+            charaMange.NewRound();
+            Enemyactionend = 0;
         }
-        charaMange.ChoseMark = 0;
     }
 
     public void ReSetGridValue()

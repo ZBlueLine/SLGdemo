@@ -19,6 +19,5 @@ public class StandbyButtom : MonoBehaviour
         Selectchara.GetComponent<CharaController>().Status = GlobalVar.EndRound;
         MyMap.ReSetGridValue();
         ++MyMap.ActionEnd;
-        MyMap.CheckTurn();
     }
 }
