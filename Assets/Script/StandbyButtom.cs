@@ -14,7 +14,7 @@ public class StandbyButtom : MonoBehaviour
     {
         GameObject Selectchara = GridStatus.SelectedChara;
         Debug.Log("StandbyButtom!!");
-        if(Selectchara.GetComponent<CharaController>().Status == GlobalVar.EndRound)
+        if(Selectchara.GetComponent<CharaController>().Status >= GlobalVar.Attacked)
             return;
         Selectchara.GetComponent<CharaController>().Status = GlobalVar.EndRound;
         MyMap.ReSetGridValue();

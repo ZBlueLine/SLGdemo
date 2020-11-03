@@ -8,7 +8,10 @@ public class UI : MonoBehaviour
     GameObject MyEsc;
     public GameObject MyCanvas;
 
-
+    private void Start() 
+    {
+        MyCanvas = gameObject.GetComponent<CharaManager>().MyCanvas;
+    }
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))

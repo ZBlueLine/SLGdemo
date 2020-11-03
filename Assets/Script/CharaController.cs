@@ -127,7 +127,7 @@ public class CharaController : MonoBehaviour
 
     void FixedUpdate ()
     {
-        m_Rigidbody.MoveRotation (m_Rotation);
+        // m_Rigidbody.MoveRotation (m_Rotation);
         float NowTime = Time.time;
         m_Animator.SetInteger("WaitStatus", WaitStatus);
         m_Animator.SetBool ("IsWalking", IsWalking);
@@ -187,6 +187,8 @@ public class CharaController : MonoBehaviour
     public void Attack(GameObject Enemy)
     {
         Vector3 desiredForward = Enemy.transform.localPosition - transform.localPosition;
+        //防止因为精度问题出现y值，可能导致人物移动是的不正常旋转
+        desiredForward.y = 0;
         m_Rotation = Quaternion.LookRotation(desiredForward);
         gameObject.GetComponent<ShotBox>().Shot(desiredForward);
         Enemy.GetComponent<CharaController>().Damaged(ATK);
